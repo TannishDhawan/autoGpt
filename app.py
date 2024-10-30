@@ -11,29 +11,39 @@ from langchain.utilities import WikipediaAPIWrapper
 os.environ['OPENAI_API_KEY'] = apikey
 
 # App framework
-st.title(' AutoGPT - AI Research Assistant')
-prompt = st.text_input('here goes your prompt :)') 
+st.title('AutoGPT - AI Research Assistant')
+prompt = st.text_input('Enter your topic:') 
 
-# Prompt templates
-title_template = PromptTemplate(
-    input_variables = ['topic'], 
-    template='write me a youtube video title about {topic}'
+# Add output format selection
+output_format = st.selectbox(
+    'Select output format:',
+    ('Essay', 'Presentation Slides', 'Q&A Format')
 )
 
-script_template = PromptTemplate(
-    input_variables = ['title', 'wikipedia_research'], 
-    template='write me a youtube video script based on this title TITLE: {title} while leveraging this wikipedia reserch:{wikipedia_research} '
+# Add research depth selection
+research_depth = st.select_slider(
+    'Select research depth:',
+    options=['Brief Overview', 'Detailed Analysis', 'Expert Level']
+)
+
+title_template = PromptTemplate(
+    input_variables = ['topic'], 
+    template='write me a research title about {topic}'
+)
+
+content_template = PromptTemplate(
+    input_variables = ['title', 'wikipedia_research', 'output_format', 'research_depth'], 
+    template='Create a {output_format} about {title} with a {research_depth}. Use this wikipedia research: {wikipedia_research}. Format the output appropriately for {output_format}.'
 )
 
 # Memory 
 title_memory = ConversationBufferMemory(input_key='topic', memory_key='chat_history')
-script_memory = ConversationBufferMemory(input_key='title', memory_key='chat_history')
-
+content_memory = ConversationBufferMemory(input_key='title', memory_key='chat_history')
 
 # Llms
 llm = OpenAI(temperature=0.9) 
 title_chain = LLMChain(llm=llm, prompt=title_template, verbose=True, output_key='title', memory=title_memory)
-script_chain = LLMChain(llm=llm, prompt=script_template, verbose=True, output_key='script', memory=script_memory)
+content_chain = LLMChain(llm=llm, prompt=content_template, verbose=True, output_key='content', memory=content_memory)
 
 wiki = WikipediaAPIWrapper()
 
@@ -41,16 +51,16 @@ wiki = WikipediaAPIWrapper()
 if prompt: 
     title = title_chain.run(prompt)
     wiki_research = wiki.run(prompt) 
-    script = script_chain.run(title=title, wikipedia_research=wiki_research)
+    content = content_chain.run(title=title, wikipedia_research=wiki_research, output_format=output_format, research_depth=research_depth)
 
     st.write(title) 
-    st.write(script) 
+    st.write(content) 
 
     with st.expander('Title History'): 
         st.info(title_memory.buffer)
 
-    with st.expander('Script History'): 
-        st.info(script_memory.buffer)
+    with st.expander('Content History'): 
+        st.info(content_memory.buffer)
 
     with st.expander('Wikipedia Research'): 
         st.info(wiki_research)
