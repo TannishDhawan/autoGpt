@@ -11,56 +11,66 @@ from langchain.utilities import WikipediaAPIWrapper
 os.environ['OPENAI_API_KEY'] = apikey
 
 # App framework
-st.title('AutoGPT - AI Research Assistant')
-prompt = st.text_input('Enter your topic:') 
+st.title('AI Assistant')
+user_input = st.text_input('What would you like me to do?') 
 
-# Add output format selection
+# Output format selection
 output_format = st.selectbox(
     'Select output format:',
-    ('Essay', 'Presentation Slides', 'Q&A Format')
+    ('Paragraph', 'Bullet Points', 'Step-by-Step Guide', 'Table')
 )
 
-# Add research depth selection
-research_depth = st.select_slider(
-    'Select research depth:',
-    options=['Brief Overview', 'Detailed Analysis', 'Expert Level']
+# Task complexity selection
+task_complexity = st.select_slider(
+    'Select task complexity:',
+    options=['Simple', 'Moderate', 'Complex']
 )
 
-title_template = PromptTemplate(
-    input_variables = ['topic'], 
-    template='write me a research title about {topic}'
+task_template = PromptTemplate(
+    input_variables = ['task'],
+    template='You are an AI assistant. Your task is to: {task}'
 )
 
-content_template = PromptTemplate(
-    input_variables = ['title', 'wikipedia_research', 'output_format', 'research_depth'], 
-    template='Create a {output_format} about {title} with a {research_depth}. Use this wikipedia research: {wikipedia_research}. Format the output appropriately for {output_format}.'
+response_template = PromptTemplate(
+    input_variables = ['task', 'context', 'output_format', 'task_complexity'],
+    template='''As an AI assistant, complete the following task: {task}
+    
+    Use this additional context if relevant: {context}
+    
+    Format your response as: {output_format}
+    
+    Treat this task as {task_complexity} in complexity.
+    
+    Your response:'''
 )
 
 # Memory 
-title_memory = ConversationBufferMemory(input_key='topic', memory_key='chat_history')
-content_memory = ConversationBufferMemory(input_key='title', memory_key='chat_history')
+task_memory = ConversationBufferMemory(input_key='task', memory_key='chat_history')
+response_memory = ConversationBufferMemory(input_key='task', memory_key='chat_history')
 
 # Llms
-llm = OpenAI(temperature=0.9) 
-title_chain = LLMChain(llm=llm, prompt=title_template, verbose=True, output_key='title', memory=title_memory)
-content_chain = LLMChain(llm=llm, prompt=content_template, verbose=True, output_key='content', memory=content_memory)
+llm = OpenAI(temperature=0.7) 
+task_chain = LLMChain(llm=llm, prompt=task_template, verbose=True, output_key='task_description', memory=task_memory)
+response_chain = LLMChain(llm=llm, prompt=response_template, verbose=True, output_key='response', memory=response_memory)
 
 wiki = WikipediaAPIWrapper()
 
-# Show stuff to the screen if there's a prompt
-if prompt: 
-    title = title_chain.run(prompt)
-    wiki_research = wiki.run(prompt) 
-    content = content_chain.run(title=title, wikipedia_research=wiki_research, output_format=output_format, research_depth=research_depth)
+# Show stuff to the screen if there's a user input
+if user_input: 
+    task_description = task_chain.run(user_input)
+    context = wiki.run(user_input)
+    response = response_chain.run(task=task_description, context=context, output_format=output_format, task_complexity=task_complexity)
 
-    st.write(title) 
-    st.write(content) 
+    st.write("Task:")
+    st.write(task_description) 
+    st.write("Response:")
+    st.write(response) 
 
-    with st.expander('Title History'): 
-        st.info(title_memory.buffer)
+    with st.expander('Task History'): 
+        st.info(task_memory.buffer)
 
-    with st.expander('Content History'): 
-        st.info(content_memory.buffer)
+    with st.expander('Response History'): 
+        st.info(response_memory.buffer)
 
-    with st.expander('Wikipedia Research'): 
-        st.info(wiki_research)
+    with st.expander('Additional Context'): 
+        st.info(context)
