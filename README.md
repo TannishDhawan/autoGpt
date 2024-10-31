@@ -1,26 +1,26 @@
 # 🤖 AI Assistant - Your Intelligent Task Companion
 
-An advanced AI-powered assistant built with Streamlit and LangChain that helps you with various tasks, from writing summaries to creating structured content.
+An advanced AI-powered assistant built with Streamlit and LangChain that helps with various tasks, from writing summaries to creating structured content.
 
 ## ✨ Features
 
-- **Multiple Output Formats**
+- Multiple Output Formats
   - Paragraph format
   - Bullet points
   - Step-by-step guides
   - Table format
 
-- **Adjustable Complexity Levels**
+- Adjustable Complexity Levels
   - Simple
   - Moderate
   - Complex
 
-- **Smart Context Integration**
+- Smart Context Integration
   - Automatic Wikipedia research
   - Contextual understanding
   - Memory retention of conversations
 
-- **User-Friendly Interface**
+- User-Friendly Interface
   - Clean and intuitive design
   - Real-time processing
   - Interactive sidebar controls
@@ -28,8 +28,8 @@ An advanced AI-powered assistant built with Streamlit and LangChain that helps y
 
 ### Prerequisites
 
-```bash
-python 3.7+
+```
+python 3.7
 streamlit
 langchain
 openai
@@ -57,10 +57,10 @@ wikipedia-api
 
 ## 🛠️ Technical Stack
 
-- **Frontend**: Streamlit
-- **AI/ML**: LangChain, OpenAI
-- **Additional APIs**: Wikipedia API
-- **Memory Management**: ConversationBufferMemory
+- Frontend: Streamlit
+- AI/ML: LangChain, OpenAI
+- Additional APIs: Wikipedia API
+- Memory Management: ConversationBufferMemory
 
 ## 📝 Notes
 
